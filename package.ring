@@ -5,11 +5,11 @@ aPackageInfo = [
 	:developer = "",
 	:email = "",
 	:license = "MIT License",
-	:version = "1.0.2",
+	:version = "1.0.3",
 	:ringversion = "1.25",
 	:versions = 	[
 		[
-			:version = "1.0.2",
+			:version = "1.0.3",
 			:branch = "master"
 		]
 	],
@@ -30,6 +30,7 @@ aPackageInfo = [
 		"samples/UsingAI/UsingClaude/games/linedrawing3d/globals.ring",
 		"samples/UsingAI/UsingClaude/games/linedrawing3d/helpers.ring",
 		"samples/UsingAI/UsingClaude/games/linedrawing3d/image/cubicmap_atlas.png",
+		"samples/UsingAI/UsingClaude/games/linedrawing3d/image/menuback.png",
 		"samples/UsingAI/UsingClaude/games/linedrawing3d/image/linedrawing3d_shot1.png",
 		"samples/UsingAI/UsingClaude/games/linedrawing3d/image/linedrawing3d_shot2.png",
 		"samples/UsingAI/UsingClaude/games/linedrawing3d/image/linedrawing3d_shot3.png",
@@ -47,7 +48,8 @@ aPackageInfo = [
 		"samples/UsingAI/UsingClaude/games/linedrawing3d/sound/puzzle_open.wav",
 		"samples/UsingAI/UsingClaude/games/linedrawing3d/sound/puzzle_solved.wav",
 		"samples/UsingAI/UsingClaude/games/linedrawing3d/sound/sphere_collect.wav",
-		"samples/UsingAI/UsingClaude/games/linedrawing3d/sound/win_fanfare.wav"
+		"samples/UsingAI/UsingClaude/games/linedrawing3d/sound/win_fanfare.wav",
+		"samples/UsingAI/UsingClaude/games/linedrawing3d/sound/menu.wav"
 	],
 	:windowsfiles = 	[
 

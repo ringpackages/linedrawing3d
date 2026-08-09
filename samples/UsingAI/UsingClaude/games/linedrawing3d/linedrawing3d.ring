@@ -51,9 +51,9 @@ monIdx = GetCurrentMonitor()
 monW = GetMonitorWidth(monIdx)
 monH = GetMonitorHeight(monIdx)
 
-InitWindow(monW, monH, "Line Drawing 3D")
+InitWindow(monW, monH, "Prince of Vibe Code (LineDrawing3D)")
 SetTargetFPS(60)
-ToggleFullscreen()
+togglefullscreen()
 BeginDrawing()
 ClearBackground(RAYLIBColor(0, 0, 0, 255))
 EndDrawing()
@@ -61,11 +61,13 @@ EndDrawing()
 SCREEN_W = GetScreenWidth()
 SCREEN_H = GetScreenHeight()
 
+// Menu background (must load after window init - OpenGL context required)
+menuBackTex = LoadTexture("image/menuback.png")
+
 centerX = SCREEN_W / 2
 centerY = SCREEN_H / 2
 
 SetTargetFPS(60)
-HideCursor()
 SetMousePosition(centerX, centerY)
 
 cam = Camera3D(
@@ -92,7 +94,7 @@ SetExitKey(0)
 // Main Game Loop
 // =============================================================
 
-while !WindowShouldClose()
+while !WindowShouldClose() and !quitGame
     dt = GetFrameTime()
     if dt > 0.05 dt = 0.05 ok
 
@@ -124,14 +126,7 @@ while !WindowShouldClose()
 
     switch gameState
     on ST_TITLE
-        if IsKeyPressed(KEY_ENTER) or IsKeyPressed(KEY_SPACE) or IsMouseButtonPressed(0)
-            gameState = ST_EXPLORE
-            SetMousePosition(centerX, centerY)
-        ok
-        if IsKeyPressed(KEY_ESCAPE)
-            CloseWindow()
-            bye
-        ok
+        ld_updateTitleInput()
     on ST_EXPLORE
         ld_handleExploreInput(dt)
         ld_updateFireworks(dt)
@@ -163,6 +158,7 @@ while !WindowShouldClose()
         if IsKeyPressed(KEY_ENTER) or IsKeyPressed(KEY_SPACE)
             ld_loadLevel(1)
             gameState = ST_TITLE
+            ShowCursor()
         ok
     off
 
@@ -264,4 +260,5 @@ if hasMapModel
     UnloadTexture(mapTexture)
 ok
 UnloadTexture(texWall)
+UnloadTexture(menuBackTex)
 CloseWindow()

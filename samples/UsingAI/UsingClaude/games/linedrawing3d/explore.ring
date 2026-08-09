@@ -101,16 +101,10 @@ func ld_handleExploreInput dt
         showMap = !showMap
     ok
 
-    // ESC in explore mode exits the game
+    // ESC in explore mode returns to the main menu screen
     if IsKeyPressed(KEY_ESCAPE)
-        if hasMapModel
-            UnloadModel(mapModel)
-            UnloadTexture(mapTexture)
-        ok
-        UnloadTexture(texWall)
-        ld_closeAudio()
-        CloseWindow()
-        bye
+        gameState = ST_TITLE
+        ShowCursor()
     ok
 
 
@@ -221,5 +215,57 @@ func ld_checkAllSolved
     if solvedCount >= nPanels
         gameState = ST_WON
         PlaySound(sndWinFanfare)
+    ok
+
+// =============================================================
+// Welcome Screen Input
+// =============================================================
+
+func ld_updateTitleInput
+    prevSel = ld_titleSel
+
+    if IsKeyPressed(KEY_ESCAPE)
+        quitGame = true
+        return
+    ok
+    if IsKeyPressed(KEY_LEFT) or IsKeyPressed(KEY_RIGHT) or IsKeyPressed(KEY_TAB)
+        ld_titleSel = 3 - ld_titleSel
+    ok
+    if IsKeyPressed(KEY_ENTER) or IsKeyPressed(KEY_SPACE)
+        ld_titleSelect(ld_titleSel)
+        return
+    ok
+
+    mx = GetMouseX()
+    my = GetMouseY()
+    hover = 0
+    if mx >= ld_btnX1 and mx <= ld_btnX1+ld_btnW and my >= ld_btnY and my <= ld_btnY+ld_btnH  hover = 1  ok
+    if mx >= ld_btnX2 and mx <= ld_btnX2+ld_btnW and my >= ld_btnY and my <= ld_btnY+ld_btnH  hover = 2  ok
+
+    mouseMoved = (mx != ld_titleLastMouseX or my != ld_titleLastMouseY)
+    if hover > 0 and mouseMoved
+        ld_titleSel = hover
+    ok
+    ld_titleLastMouseX = mx
+    ld_titleLastMouseY = my
+
+    if IsMouseButtonPressed(MOUSE_LEFT_BUTTON)
+        ld_titlePressHover = hover
+    ok
+    if IsMouseButtonReleased(MOUSE_LEFT_BUTTON) and hover > 0 and hover = ld_titlePressHover
+        ld_titleSelect(hover)
+    ok
+
+    if ld_titleSel != prevSel
+        PlaySound(sndMenu)
+    ok
+
+func ld_titleSelect sel
+    if sel = 1
+        gameState = ST_EXPLORE
+        HideCursor()
+        SetMousePosition(centerX, centerY)
+    else
+        quitGame = true
     ok
 

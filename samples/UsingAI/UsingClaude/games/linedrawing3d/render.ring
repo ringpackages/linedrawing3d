@@ -620,7 +620,7 @@ func ld_drawExploreHUD
     // Top bar
     DrawRectangle(0, 0, SCREEN_W, 30, RAYLIBColor(0, 0, 0, 180))
 
-    title = "LINE DRAWING 3D"
+    title = "Line Drawing 3D"
     DrawText(title, 40, 6, 18, RAYLIBColor(255, 220, 100, 255))
 
     // Puzzle progress
@@ -649,14 +649,6 @@ func ld_drawExploreHUD
     scoreStr = "Score: " + sphereScore + "  Spheres: " + collectedSpheres + "/" + nSpheres
     DrawText(scoreStr, floor(SCREEN_W / 2) - floor(MeasureText(scoreStr, 16) / 2), 7, 16,
              RAYLIBColor(255, 200, 80, 220))
-
-    // Bottom controls
-    DrawRectangle(0, SCREEN_H - 28, SCREEN_W, 28, RAYLIBColor(0, 0, 0, 150))
-    ctrl = "WASD: Move | Mouse: Look | TAB: Map"
-    cw = MeasureText(ctrl, 13)
-    DrawText(ctrl, floor(SCREEN_W/2 - cw/2), SCREEN_H - 22, 13,
-             RAYLIBColor(160, 160, 150, 200))
-
 
 func ld_drawMinimap
     mapScale = 4
@@ -739,57 +731,75 @@ func ld_drawMinimap
     DrawCircle(dirEndX, dirEndY, 2, RAYLIBColor(255, 255, 255, 220))
 
 
+# Decorative gradient border frame around the welcome screen, in the style of
+# povc.ring's notification borders (drawFancyBorder) but drawn with plain
+# raylib primitives instead of the border PNG.
+func drawScreenBorder gradCol1, gradCol2, outerCol, innerCol
+    inset = 14   thick = 5
+    DrawRectangleGradientH(inset, inset, SCREEN_W-inset*2, thick, gradCol1, gradCol2)
+    DrawRectangleGradientH(inset, SCREEN_H-inset-thick, SCREEN_W-inset*2, thick, gradCol2, gradCol1)
+    DrawRectangleGradientV(inset, inset, thick, SCREEN_H-inset*2, gradCol1, gradCol2)
+    DrawRectangleGradientV(SCREEN_W-inset-thick, inset, thick, SCREEN_H-inset*2, gradCol1, gradCol2)
+    DrawRectangleLines(inset-3, inset-3, SCREEN_W-(inset-3)*2, SCREEN_H-(inset-3)*2, outerCol)
+    DrawRectangleLines(inset+thick+4, inset+thick+4, SCREEN_W-(inset+thick+4)*2, SCREEN_H-(inset+thick+4)*2, innerCol)
+
+# Shared layout math for the welcome screen, used by both ld_drawTitle (drawing)
+# and ld_updateTitleInput (mouse hit-testing) so they can never drift apart.
+# Fonts scale with the monitor's actual resolution (baseline = 700px tall),
+# and the whole block is vertically centered based on its real content height.
+func ld_computeTitleLayout
+    mY = SCREEN_H / 700.0
+
+    ld_titleSz    = max(34, floor(60*mY))
+    ld_instSz     = max(14, floor(28*mY))
+    ld_instPitch  = floor(40*mY)
+    ld_demoSz     = max(14, floor(22*mY))
+    ld_btnLblSz   = max(18, floor(26*mY))
+
+    ld_btnW   = max(floor(200*mY), MeasureText("Exit", ld_btnLblSz) + 70)
+    ld_btnH   = floor(58*mY)
+    ld_btnGap = floor(26*mY)
+
+    gap3 = floor(18*mY)   // title -> instructions
+    gap4 = floor(20*mY)   // instructions -> demo
+    gap5 = floor(24*mY)   // demo -> buttons
+
+    titleBlockH = ld_titleSz + floor(8*mY)
+    instBlockH  = 5 * ld_instPitch
+    demoBlockH  = 3 * ld_demoSz + floor(14*mY)
+    btnBlockH   = ld_btnH
+
+    contentH = titleBlockH+gap3+instBlockH+gap4+demoBlockH+gap5+btnBlockH
+
+    topY = floor((SCREEN_H - contentH) / 2)
+    if topY < floor(14*mY)  topY = floor(14*mY)  ok
+
+    ld_titleY   = topY
+    ld_instY    = ld_titleY + titleBlockH + gap3
+    ld_demoY    = ld_instY + instBlockH + gap4
+    ld_btnY     = ld_demoY + demoBlockH + gap5
+
+    totalBtnW = ld_btnW * 2 + ld_btnGap
+    ld_btnX1 = floor((SCREEN_W - totalBtnW) / 2)
+    ld_btnX2 = ld_btnX1 + ld_btnW + ld_btnGap
+
 func ld_drawTitle
-    // White background with subtle gradient
-    DrawRectangleGradientV(0, 0, SCREEN_W, SCREEN_H,
-        RAYLIBColor(255, 255, 255, 255), RAYLIBColor(235, 235, 250, 255))
+    ld_computeTitleLayout()
 
-    // Ambient floating particles (soft purple)
-    for i = 0 to 20
-        sx = ((floor(animTime * 15 + i * 41) % SCREEN_W) + SCREEN_W) % SCREEN_W
-        sy = ((floor(animTime * 25 + i * 67) % SCREEN_H) + SCREEN_H) % SCREEN_H
-        DrawCircle(sx, sy, 2, RAYLIBColor(140, 100, 220, 50))
-    next
+    // Menu background image
+    DrawTexturePro(menuBackTex,
+        Rectangle(0.0, 0.0, menuBackTex.width*1.0, menuBackTex.height*1.0),
+        Rectangle(0.0, 0.0, SCREEN_W*1.0, SCREEN_H*1.0),
+        Vector2(0.0, 0.0), 0.0, WHITE)
 
-    // Title at top
-    titleH = 56
-    t1 = "LINE DRAWING 3D"
-    t1w = MeasureText(t1, titleH)
-    DrawText(t1, floor(SCREEN_W/2 - t1w/2) + 2, 32, titleH, RAYLIBColor(180, 160, 220, 100))
-    DrawText(t1, floor(SCREEN_W/2 - t1w/2), 30, titleH, RAYLIBColor(80, 50, 140, 255))
+    // Title (with a gentle wobble/bounce, drop-shadow copy underneath)
+    wob = floor(sin(animTime * 2.0) * 8)
+    t1 = "Line Drawing 3D"
+    t1w = MeasureText(t1, ld_titleSz)
+    DrawText(t1, floor(SCREEN_W/2 - t1w/2) + 3, ld_titleY + 3 + wob, ld_titleSz, RAYLIBColor(0, 20, 10, 200))
+    DrawText(t1, floor(SCREEN_W/2 - t1w/2), ld_titleY + wob, ld_titleSz, WHITE)
 
-    // Subtitle below title
-    subtitleH = 22
-    sub = "Puzzle Maze Explorer"
-    sW = MeasureText(sub, subtitleH)
-    DrawText(sub, floor(SCREEN_W/2 - sW/2), 95, subtitleH, RAYLIBColor(120, 100, 170, 230))
-
-    // Divider line
-    DrawLine(200, 130, SCREEN_W - 200, 130, RAYLIBColor(160, 140, 200, 150))
-
-    // Center remaining content (instructions, demo, rules, start) in remaining space
-    instFont = 32
-    instSpacing = 48
-    nInstLines = 5
-    instBlockH = nInstLines * instSpacing
-    gapAfterInst = 25
-    dSz = 25
-    demoH = 3 * dSz
-    gapAfterDemo = 25
-    rulesFont = 14
-    rulesSpacing = 20
-    nRulesLines = 4
-    rulesBlockH = nRulesLines * rulesSpacing
-    gapAfterRules = 30
-    startH = 24
-
-    contentH = instBlockH + gapAfterInst + demoH + gapAfterDemo + rulesBlockH + gapAfterRules + startH
-    topArea = 145
-    availH = SCREEN_H - topArea - 40
-    cy = topArea + floor((availH - contentH) / 2)
-    if cy < topArea cy = topArea ok
-
-    // Instructions (centered, 2x font = 32)
+    // Instructions
     inst = [
         "WASD / Arrows  -  Move (Explore) / Draw (Puzzle)",
         "Mouse  -  Look Around / Draw Path",
@@ -799,22 +809,22 @@ func ld_drawTitle
     ]
     nInst = len(inst)
     for i = 1 to nInst
-        iW = MeasureText(inst[i], instFont)
-        DrawText(inst[i], floor(SCREEN_W/2 - iW/2), cy + (i-1) * instSpacing, instFont,
-                 RAYLIBColor(80, 75, 100, 220))
+        iW = MeasureText(inst[i], ld_instSz)
+        DrawText(inst[i], floor(SCREEN_W/2 - iW/2), ld_instY + (i-1) * ld_instPitch, ld_instSz,
+                 RAYLIBColor(180, 220, 180, 200))
     next
-    cy += nInst * instSpacing + gapAfterInst
 
-    // Demo puzzle grid (purple lines)
+    // Demo puzzle grid (bright purple lines)
+    dSz = ld_demoSz
     dStartX = floor((SCREEN_W - 3 * dSz) / 2)
-    dStartY = cy
+    dStartY = ld_demoY
     for r = 0 to 3
         y2 = dStartY + r * dSz
-        DrawLine(dStartX, y2, dStartX + 3 * dSz, y2, RAYLIBColor(100, 80, 160, 160))
+        DrawLine(dStartX, y2, dStartX + 3 * dSz, y2, RAYLIBColor(170, 140, 220, 190))
     next
     for c = 0 to 3
         x2 = dStartX + c * dSz
-        DrawLine(x2, dStartY, x2, dStartY + 3 * dSz, RAYLIBColor(100, 80, 160, 160))
+        DrawLine(x2, dStartY, x2, dStartY + 3 * dSz, RAYLIBColor(170, 140, 220, 190))
     next
     // Demo path (bright purple)
     pathLen = floor(animTime * 2) % 6
@@ -826,37 +836,37 @@ func ld_drawTitle
         y1d = dStartY + demoPath[i][1] * dSz
         x2d = dStartX + demoPath[i+1][2] * dSz
         y2d = dStartY + demoPath[i+1][1] * dSz
-        DrawLineEx(Vector2(x1d, y1d), Vector2(x2d, y2d), 4, RAYLIBColor(100, 60, 200, 255))
+        DrawLineEx(Vector2(x1d, y1d), Vector2(x2d, y2d), 4, RAYLIBColor(190, 140, 255, 255))
     next
-    DrawCircle(dStartX, dStartY + 3 * dSz, 7, RAYLIBColor(100, 60, 200, 220))
-    DrawCircle(dStartX + 2 * dSz, dStartY - 5, 4, RAYLIBColor(100, 60, 200, 220))
-    cy += demoH + gapAfterDemo
+    DrawCircle(dStartX, dStartY + 3 * dSz, 7, RAYLIBColor(190, 140, 255, 230))
+    DrawCircle(dStartX + 2 * dSz, dStartY - 5, 4, RAYLIBColor(190, 140, 255, 230))
 
-    // Rules
-    ruleCol = RAYLIBColor(100, 60, 160, 220)
-    rules = [
-        "Explore 3D rooms, find glowing puzzle panels",
-        "Solve line-trace puzzles to unlock doors",
-        "Collect spheres for inspiring quotes",
-        "Solve all 15 puzzles to win the game!"
-    ]
-    nRules = len(rules)
-    for i = 1 to nRules
-        rw = MeasureText(rules[i], rulesFont)
-        DrawText(rules[i], floor(SCREEN_W/2 - rw/2), cy + (i-1) * rulesSpacing, rulesFont, ruleCol)
-    next
-    cy += nRules * rulesSpacing + gapAfterRules
-
-    // Start prompt (pulsing)
-    pulse = floor(sin(animTime * 3.0) * 40 + 215)
-    start = "Press ENTER or SPACE to Begin"
-    startW = MeasureText(start, startH)
-    DrawText(start, floor(SCREEN_W/2 - startW/2), cy, startH,
-             RAYLIBColor(80, 50, 140, pulse))
+    // Play / Exit buttons
+    ld_titleButton(ld_btnX1, ld_btnY, ld_btnW, ld_btnH, "Play", ld_titleSel = 1)
+    ld_titleButton(ld_btnX2, ld_btnY, ld_btnW, ld_btnH, "Exit", ld_titleSel = 2)
 
     // Credits
     DrawText("Ring Language + RingRayLib", 10, SCREEN_H - 25, 14,
-             RAYLIBColor(150, 140, 170, 180))
+             RAYLIBColor(180, 220, 180, 160))
+
+    drawScreenBorder(RAYLIBColor(8,60,30,235), RAYLIBColor(3,25,12,235), RAYLIBColor(173,216,230,255), RAYLIBColor(173,216,230,70))
+
+func ld_titleButton bx, by, bw, bh, label, isSelected
+    mx = GetMouseX()
+    my = GetMouseY()
+    hover = (mx >= bx and mx <= bx+bw and my >= by and my <= by+bh)
+    if isSelected or hover
+        DrawRectangleGradientV(bx, by, bw, bh, RAYLIBColor(210, 235, 248, 255), RAYLIBColor(140, 190, 218, 255))
+        DrawRectangleLines(bx, by, bw, bh, RAYLIBColor(0, 0, 80, 255))
+        DrawRectangleLines(bx+1, by+1, bw-2, bh-2, RAYLIBColor(0, 0, 80, 255))
+        txtCol = RAYLIBColor(0, 0, 80, 255)
+    else
+        DrawRectangleGradientV(bx, by, bw, bh, RAYLIBColor(25, 35, 45, 255), RAYLIBColor(12, 18, 25, 255))
+        DrawRectangleLines(bx, by, bw, bh, RAYLIBColor(173, 216, 230, 255))
+        txtCol = RAYLIBColor(173, 216, 230, 255)
+    ok
+    lw = MeasureText(label, ld_btnLblSz)
+    DrawText(label, bx + floor((bw - lw)/2), by + floor((bh - ld_btnLblSz)/2), ld_btnLblSz, txtCol)
 
 func ld_drawSolvedOverlay
     pulse = floor(220 + sin(animTime * 3.0) * 35)

@@ -22,7 +22,22 @@ centerY = SCREEN_H / 2
 // Game
 gameState = ST_TITLE
 animTime = 0.0
+quitGame = false
 showMap = true
+
+// Welcome screen (Play/Exit buttons)
+ld_titleSel        = 1
+ld_titlePressHover = -1
+ld_titleLastMouseX = -1
+ld_titleLastMouseY = -1
+
+# Welcome-screen layout (computed each frame by ld_computeTitleLayout;
+# declared here at top level so Ring treats them as globals shared by
+# ld_drawTitle and ld_updateTitleInput, not locals private to one function)
+ld_titleSz=0 ld_titleY=0
+ld_instSz=0  ld_instY=0 ld_instPitch=0
+ld_demoSz=0  ld_demoY=0
+ld_btnLblSz=0 ld_btnW=0 ld_btnH=0 ld_btnGap=0 ld_btnY=0 ld_btnX1=0 ld_btnX2=0
 roomBounds = []
 msgText = ""
 msgTimer = 0.0
@@ -136,4 +151,5 @@ sndPuzzleFail = NULL
 sndWinFanfare = NULL
 sndPathDraw = NULL
 sndSphereCollect = NULL
+sndMenu = NULL
 footstepTimer = 0.0

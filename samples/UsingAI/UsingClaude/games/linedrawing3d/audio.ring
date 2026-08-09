@@ -20,6 +20,7 @@ func ld_initAudio
     sndWinFanfare = LoadSound("sound/win_fanfare.wav")
     sndPathDraw = LoadSound("sound/path_draw.wav")
     sndSphereCollect = LoadSound("sound/sphere_collect.wav")
+    sndMenu = LoadSound("sound/menu.wav")
 
     // Set volumes
     SetSoundVolume(sndFootstep, 0.3)
@@ -30,6 +31,7 @@ func ld_initAudio
     SetSoundVolume(sndWinFanfare, 0.8)
     SetSoundVolume(sndPathDraw, 0.25)
     SetSoundVolume(sndSphereCollect, 0.7)
+    SetSoundVolume(sndMenu, 0.5)
 
 func ld_closeAudio
     UnloadMusicStream(bgMusic)
@@ -41,4 +43,5 @@ func ld_closeAudio
     UnloadSound(sndWinFanfare)
     UnloadSound(sndPathDraw)
     UnloadSound(sndSphereCollect)
+    UnloadSound(sndMenu)
     CloseAudioDevice()
